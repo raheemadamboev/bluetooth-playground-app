@@ -8,4 +8,11 @@
     <string name="state_on">Bluetooth is on</string>
     <string name="turning_on">Turning on Bluetooth…</string>
     <string name="turning_off">Turning off Bluetooth…</string>
+    <string name="discoverability_enabled">Bluetooth discoverability is enabled</string>
+    <string name="discoverability_disabled">Bluetooth discoverability is disabled</string>
+    <string name="connectable">Bluetooth discoverability is disabled but can be connected to previous connected devices</string>
+    <string name="discoverability_disabled_none">Bluetooth discoverability disabled and can not be connected</string>
+    <string name="connecting">Connecting…</string>
+    <string name="connected">Connected</string>
+    <string name="turn_on_discoverability">Turn on discoverability</string>
 </resources>

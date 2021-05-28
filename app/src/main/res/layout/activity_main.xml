@@ -28,7 +28,6 @@
         app:layout_constraintTop_toBottomOf="@id/status_t"
         tools:text="@string/app_name" />
 
-
     <TextView
         android:id="@+id/discoverability_t"
         android:layout_width="match_parent"
@@ -49,5 +48,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/discoverability_t"
-        tools:text="@string/app_name" />
+        android:text="@string/turn_on_discoverability" />
 </androidx.constraintlayout.widget.ConstraintLayout>
