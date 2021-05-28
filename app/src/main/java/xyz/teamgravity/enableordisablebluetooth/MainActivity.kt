@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import androidx.annotation.RequiresApi
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var devicesAdapter: BluetoothDevicesAdapter
+    private lateinit var locationManager: LocationManager
 
     private val devices = mutableListOf<BluetoothDevice>()
 
@@ -40,6 +42,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         recyclerView()
         bluetoothAdapter()
@@ -115,11 +119,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun hasGPSEnabled() = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+
     // start discovery
     private fun discoverDevices() {
         devices.clear()
         println("debug: discovery started")
-        bluetoothAdapter!!.startDiscovery()
+        bluetoothAdapter?.startDiscovery()
     }
 
     // turn on off button
@@ -162,6 +168,11 @@ class MainActivity : AppCompatActivity() {
         binding.discoverB.setOnClickListener {
             if (!hasPermissions()) {
                 requestPermissions()
+                return@setOnClickListener
+            }
+
+            if (!hasGPSEnabled()) {
+                startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 return@setOnClickListener
             }
 
