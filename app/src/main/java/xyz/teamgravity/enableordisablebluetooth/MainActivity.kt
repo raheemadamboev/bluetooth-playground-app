@@ -1,6 +1,7 @@
 package xyz.teamgravity.enableordisablebluetooth
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -17,7 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import xyz.teamgravity.enableordisablebluetooth.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), BluetoothDevicesAdapter.OnBluetoothDeviceListener {
     companion object {
         private const val PERMISSIONS_REQUEST_CODE = 1
         private val PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun recyclerView() {
-        devicesAdapter = BluetoothDevicesAdapter()
+        devicesAdapter = BluetoothDevicesAdapter(this)
         binding.recyclerView.adapter = devicesAdapter
     }
 
@@ -66,6 +67,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 updateUI()
                 button()
+                registerBondReceiver()
             }
         }
     }
@@ -82,6 +84,12 @@ class MainActivity : AppCompatActivity() {
         onTurnOnOff()
         onDiscoverability()
         onDiscover()
+    }
+
+    private fun registerBondReceiver() {
+        val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        filter.priority = 1000000
+        registerReceiver(receiver, filter)
     }
 
     private fun updateBluetoothOn() {
@@ -136,6 +144,7 @@ class MainActivity : AppCompatActivity() {
 
             // register receiver
             val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+            filter.priority = 1000000
             registerReceiver(receiver, filter)
 
             // button
@@ -155,6 +164,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
 
         val filter = IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)
+        filter.priority = 1000000
         registerReceiver(receiver, filter)
 
         binding.discoverabilityB.setOnClickListener {
@@ -168,6 +178,7 @@ class MainActivity : AppCompatActivity() {
         filter.addAction(BluetoothDevice.ACTION_FOUND)
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        filter.priority = 1000000
         registerReceiver(receiver, filter)
 
         binding.discoverB.setOnClickListener {
@@ -186,8 +197,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // bluetooth device click
+    override fun onBluetoothDeviceClick(device: BluetoothDevice) {
+        device.createBond()
+    }
+
     // respond to bluetooth changes
     private val receiver = object : BroadcastReceiver() {
+        @SuppressLint("SetTextI18n")
         override fun onReceive(context: Context?, intent: Intent?) {
             binding.apply {
                 when (intent?.action) {
@@ -261,6 +278,30 @@ class MainActivity : AppCompatActivity() {
                         val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
                         devices.add(device)
                         devicesAdapter.submitList(devices)
+                    }
+
+                    // device bond state
+                    BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
+                        binding.apply {
+                            val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
+                            when (device.bondState) {
+
+                                // device bonded
+                                BluetoothDevice.BOND_BONDED -> {
+                                    bondT.text = "Bonded to ${device.name}"
+                                }
+
+                                // creating bond
+                                BluetoothDevice.BOND_BONDING -> {
+                                    bondT.text = "Bonding to ${device.name}"
+                                }
+
+                                // breaking bond
+                                BluetoothDevice.BOND_NONE -> {
+                                    bondT.text = "Breaking bond from ${device.address}"
+                                }
+                            }
+                        }
                     }
                 }
             }

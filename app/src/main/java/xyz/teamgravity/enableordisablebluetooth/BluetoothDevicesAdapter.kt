@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import xyz.teamgravity.enableordisablebluetooth.databinding.CardBluetoothDeviceBinding
 
-class BluetoothDevicesAdapter() : ListAdapter<BluetoothDevice, BluetoothDevicesAdapter.BluetoothDeviceViewHolder>(DIFF) {
+class BluetoothDevicesAdapter(
+    private val listener: OnBluetoothDeviceListener
+) : ListAdapter<BluetoothDevice, BluetoothDevicesAdapter.BluetoothDeviceViewHolder>(DIFF) {
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<BluetoothDevice>() {
             override fun areItemsTheSame(oldItem: BluetoothDevice, newItem: BluetoothDevice) = oldItem.address == newItem.address
@@ -18,6 +20,15 @@ class BluetoothDevicesAdapter() : ListAdapter<BluetoothDevice, BluetoothDevicesA
     }
 
     inner class BluetoothDeviceViewHolder(private val binding: CardBluetoothDeviceBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.root.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    listener.onBluetoothDeviceClick(getItem(position))
+                }
+            }
+        }
 
         fun bind(model: BluetoothDevice) {
             binding.apply {
@@ -32,5 +43,9 @@ class BluetoothDevicesAdapter() : ListAdapter<BluetoothDevice, BluetoothDevicesA
 
     override fun onBindViewHolder(holder: BluetoothDeviceViewHolder, position: Int) {
         holder.bind(getItem(position))
+    }
+
+    interface OnBluetoothDeviceListener {
+        fun onBluetoothDeviceClick(device: BluetoothDevice)
     }
 }
