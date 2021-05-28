@@ -15,4 +15,6 @@
     <string name="connecting">Connecting…</string>
     <string name="connected">Connected</string>
     <string name="turn_on_discoverability">Turn on discoverability</string>
+    <string name="available_devices">Available devices</string>
+    <string name="discover">Discover</string>
 </resources>
