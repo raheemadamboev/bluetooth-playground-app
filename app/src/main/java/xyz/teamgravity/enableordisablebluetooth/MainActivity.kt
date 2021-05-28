@@ -1,17 +1,38 @@
 package xyz.teamgravity.enableordisablebluetooth
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import xyz.teamgravity.enableordisablebluetooth.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val PERMISSIONS_REQUEST_CODE = 1
+        private val PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        @RequiresApi(Build.VERSION_CODES.Q)
+        private val PERMISSIONS_Q = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+    }
 
     private lateinit var binding: ActivityMainBinding
+
+    private lateinit var devicesAdapter: BluetoothDevicesAdapter
+
+    private val devices = mutableListOf<BluetoothDevice>()
 
     private var bluetoothAdapter: BluetoothAdapter? = null
 
@@ -20,7 +41,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        recyclerView()
         bluetoothAdapter()
+    }
+
+    private fun recyclerView() {
+        devicesAdapter = BluetoothDevicesAdapter()
+        binding.recyclerView.adapter = devicesAdapter
     }
 
     private fun bluetoothAdapter() {
@@ -51,6 +78,7 @@ class MainActivity : AppCompatActivity() {
     private fun button() {
         onTurnOnOff()
         onDiscoverability()
+        onDiscover()
     }
 
     private fun updateBluetoothOn() {
@@ -72,6 +100,42 @@ class MainActivity : AppCompatActivity() {
             getString(if (bluetoothAdapter!!.isDiscovering) R.string.discoverability_enabled else R.string.discoverability_disabled)
     }
 
+    // check permissions
+    private fun hasPermissions(): Boolean {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            PERMISSIONS.all {
+                ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }
+        } else {
+            PERMISSIONS_Q.all {
+                ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+    }
+
+    // request permissions
+    private fun requestPermissions() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSIONS_REQUEST_CODE)
+        } else {
+            ActivityCompat.requestPermissions(this, PERMISSIONS_Q, PERMISSIONS_REQUEST_CODE)
+        }
+    }
+
+    // start discovery
+    private fun discoverDevices() {
+        println("debug: discovery started")
+        bluetoothAdapter!!.startDiscovery()
+    }
+
+    // add devices if there is no device
+    private fun addDevice(device: BluetoothDevice) {
+        val filteredDevice = devices.find { it.address == device.address }
+        if (filteredDevice == null) {
+            devices.add(device)
+        }
+    }
+
     // turn on off button
     private fun onTurnOnOff() {
         binding.apply {
@@ -91,16 +155,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // on off discoverability
+    // on off discoverability button
     private fun onDiscoverability() {
         val intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
-        intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 10)
+        intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
 
         val filter = IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)
         registerReceiver(receiver, filter)
 
         binding.discoverabilityB.setOnClickListener {
             startActivity(intent)
+        }
+    }
+
+    // discover devices button
+    private fun onDiscover() {
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        registerReceiver(receiver, filter)
+
+        binding.discoverB.setOnClickListener {
+            if (!hasPermissions()) {
+                requestPermissions()
+                return@setOnClickListener
+            }
+
+            println("debug: button clicked")
+            discoverDevices()
         }
     }
 
@@ -156,7 +236,24 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
+
+                    // devices found
+                    BluetoothDevice.ACTION_FOUND -> {
+                        println("debug: device found")
+                        val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
+                        addDevice(device)
+                        devicesAdapter.submitList(devices)
+                    }
                 }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                discoverDevices()
             }
         }
     }
