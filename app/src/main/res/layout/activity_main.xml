@@ -10,19 +10,44 @@
         android:id="@+id/status_t"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:textAlignment="center"
         android:textColor="@color/black"
-        app:layout_constraintBottom_toTopOf="@id/on_off_b"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="@string/app_name" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/on_off_b"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/status_t"
+        tools:text="@string/app_name" />
+
+
+    <TextView
+        android:id="@+id/discoverability_t"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="20dp"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/on_off_b"
+        tools:text="@string/app_name" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/discoverability_b"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/discoverability_t"
         tools:text="@string/app_name" />
 </androidx.constraintlayout.widget.ConstraintLayout>
