@@ -71,8 +71,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             updateBluetoothOff()
         }
-
-        updateDiscoverability()
     }
 
     private fun button() {
@@ -93,11 +91,6 @@ class MainActivity : AppCompatActivity() {
             statusT.text = getString(R.string.state_off)
             onOffB.text = getString(R.string.turn_on_bluetooth)
         }
-    }
-
-    private fun updateDiscoverability() {
-        binding.discoverabilityT.text =
-            getString(if (bluetoothAdapter!!.isDiscovering) R.string.discoverability_enabled else R.string.discoverability_disabled)
     }
 
     // check permissions
@@ -124,16 +117,9 @@ class MainActivity : AppCompatActivity() {
 
     // start discovery
     private fun discoverDevices() {
+        devices.clear()
         println("debug: discovery started")
         bluetoothAdapter!!.startDiscovery()
-    }
-
-    // add devices if there is no device
-    private fun addDevice(device: BluetoothDevice) {
-        val filteredDevice = devices.find { it.address == device.address }
-        if (filteredDevice == null) {
-            devices.add(device)
-        }
     }
 
     // turn on off button
@@ -241,7 +227,7 @@ class MainActivity : AppCompatActivity() {
                     BluetoothDevice.ACTION_FOUND -> {
                         println("debug: device found")
                         val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
-                        addDevice(device)
+                        devices.add(device)
                         devicesAdapter.submitList(devices)
                     }
                 }
