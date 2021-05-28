@@ -14,6 +14,7 @@ import android.os.Bundle
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isVisible
 import xyz.teamgravity.enableordisablebluetooth.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -124,6 +125,7 @@ class MainActivity : AppCompatActivity() {
     // start discovery
     private fun discoverDevices() {
         devices.clear()
+        devicesAdapter.submitList(devices)
         println("debug: discovery started")
         bluetoothAdapter?.startDiscovery()
     }
@@ -162,7 +164,10 @@ class MainActivity : AppCompatActivity() {
 
     // discover devices button
     private fun onDiscover() {
-        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        val filter = IntentFilter()
+        filter.addAction(BluetoothDevice.ACTION_FOUND)
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         registerReceiver(receiver, filter)
 
         binding.discoverB.setOnClickListener {
@@ -231,6 +236,22 @@ class MainActivity : AppCompatActivity() {
                             BluetoothAdapter.STATE_CONNECTED -> {
                                 discoverabilityT.text = getString(R.string.connected)
                             }
+                        }
+                    }
+
+                    // discovery started
+                    BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
+                        binding.apply {
+                            discoverB.isEnabled = false
+                            progressBar.isVisible = true
+                        }
+                    }
+
+                    // discovery stopped
+                    BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                        binding.apply {
+                            discoverB.isEnabled = true
+                            progressBar.isVisible = false
                         }
                     }
 
