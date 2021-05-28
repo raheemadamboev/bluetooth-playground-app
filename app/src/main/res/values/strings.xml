@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Enable or Disable Bluetooth</string>
+    <string name="app_name">Bluetooth</string>
 
     <string name="not_available_bluetooth">Phone does not have Bluetooth capabilities</string>
     <string name="turn_off_bluetooth">Turn off Bluetooth</string>
