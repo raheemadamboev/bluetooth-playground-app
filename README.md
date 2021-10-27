@@ -1,5 +1,5 @@
 # bluetooth-playground-app
-Simple app to manage and search for bluetooth devices
+Simple app to manage and search for bluetooth devices 
 
 **Bluetooth**
 
